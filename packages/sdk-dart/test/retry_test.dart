@@ -1,6 +1,6 @@
 import 'package:http/http.dart' as http;
 import 'package:test/test.dart';
-import 'package:wixzel_phone/wixzel_phone.dart';
+import 'package:wixzel_voice/wixzel_voice.dart';
 
 import 'helpers.dart';
 

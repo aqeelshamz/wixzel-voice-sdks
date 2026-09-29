@@ -2,11 +2,14 @@ import { test, describe, before, after } from 'node:test';
 import assert from 'node:assert/strict';
 import { Client } from '@modelcontextprotocol/sdk/client/index.js';
 import { StreamableHTTPClientTransport } from '@modelcontextprotocol/sdk/client/streamableHttp.js';
-import { resolveHttpOptions, resourceMetadataUrl, startHttp, type RunningHttpServer } from '../src/http.js';
+import { request } from 'node:http';
+import { checkResourceAllowed } from '@modelcontextprotocol/sdk/shared/auth-utils.js';
+import { hostAliases, resolveHttpOptions, resourceFor, resourceMetadataUrl, startHttp, type RunningHttpServer } from '../src/http.js';
+import { DEFAULT_CONSOLE_URL } from '../src/site.js';
 import { allTools } from '../src/tools/index.js';
 
 /**
- * A fake Wixzel Phone API behind the MCP host. Keys starting with "good" are
+ * A fake Wixzel Voice API behind the MCP host. Keys starting with "good" are
  * accepted; anything else is a 401, which is what a revoked key looks like.
  */
 function fakeApi() {
@@ -73,7 +76,7 @@ describe('HTTP mode', () => {
         const res = await fetch(`${base}/mcp`, { method: 'POST', body: '{}', headers: { 'content-type': 'application/json' } });
         assert.equal(res.status, 401);
         const challenge = res.headers.get('www-authenticate') ?? '';
-        assert.match(challenge, /^Bearer realm="wixzel-phone-mcp"/);
+        assert.match(challenge, /^Bearer realm="wixzel-voice-mcp"/);
         assert.match(challenge, /resource_metadata="https:\/\/mcp\.example\.test\/\.well-known\/oauth-protected-resource\/mcp"/);
         assert.doesNotMatch(challenge, /error=/);
     });
@@ -134,7 +137,7 @@ describe('resolveHttpOptions', () => {
         assert.equal(opts.port, 3939);
         assert.equal(opts.bind, '127.0.0.1');
         assert.equal(opts.publicUrl, 'http://localhost:3939/mcp');
-        assert.equal(opts.apiBaseUrl, 'https://api.phone.wixzel.com');
+        assert.equal(opts.apiBaseUrl, 'https://api.voice.wixzel.com');
     });
 
     test('reads MCP_* and never the API\'s PORT', () => {
@@ -151,5 +154,93 @@ describe('resolveHttpOptions', () => {
             /fallback key on a public host/,
         );
         assert.equal(resolveHttpOptions({ WIXZEL_API_KEY: 'wv_live_x' }).fallbackKey, 'wv_live_x');
+    });
+});
+
+/** fetch() will not let a caller set Host; nginx does, so these tests do it the long way. */
+function get(port: number, path: string, host: string, method = 'GET'): Promise<{ status: number; headers: Record<string, string | string[] | undefined>; body: string }> {
+    return new Promise((resolve, reject) => {
+        const req = request({ host: '127.0.0.1', port, path, method, headers: { host } }, (res) => {
+            let body = '';
+            res.setEncoding('utf8');
+            res.on('data', (chunk) => (body += chunk));
+            res.on('end', () => resolve({ status: res.statusCode ?? 0, headers: res.headers, body }));
+        });
+        req.on('error', reject);
+        req.end();
+    });
+}
+
+describe('the hosted names', () => {
+    const VOICE = 'https://mcp.voice.wixzel.com/mcp';
+    const PHONE = 'https://mcp.phone.wixzel.com/mcp';
+    let running: RunningHttpServer;
+
+    before(async () => {
+        running = await startHttp({
+            ...resolveHttpOptions({ MCP_PUBLIC_URL: VOICE }),
+            port: 0,
+            consoleUrl: DEFAULT_CONSOLE_URL,
+            fetch: fakeApi().fetchImpl,
+            log: () => { },
+        });
+    });
+
+    after(async () => {
+        await running.close();
+    });
+
+    test('each hosted name knows the other, and nothing else has an alias', () => {
+        assert.deepEqual(hostAliases(VOICE), ['mcp.phone.wixzel.com']);
+        assert.deepEqual(hostAliases(PHONE), ['mcp.voice.wixzel.com']);
+        assert.deepEqual(hostAliases('https://mcp.example.test/mcp'), []);
+        assert.deepEqual(resolveHttpOptions({ MCP_PUBLIC_URL: VOICE }).hostAliases, ['mcp.phone.wixzel.com']);
+        assert.deepEqual(resolveHttpOptions({}).hostAliases, []);
+    });
+
+    test('resourceFor answers only for our own names', () => {
+        const aliases = hostAliases(VOICE);
+        assert.equal(resourceFor(VOICE, aliases, 'mcp.phone.wixzel.com'), PHONE);
+        assert.equal(resourceFor(VOICE, aliases, 'MCP.Phone.Wixzel.com'), PHONE);
+        assert.equal(resourceFor(VOICE, aliases, 'mcp.voice.wixzel.com'), VOICE);
+        assert.equal(resourceFor(VOICE, aliases, 'evil.test'), VOICE);
+        assert.equal(resourceFor(VOICE, aliases, undefined), VOICE);
+    });
+
+    test('the metadata names the host the client connected to, which the SDK client accepts', async () => {
+        for (const [host, expected] of [['mcp.voice.wixzel.com', VOICE], ['mcp.phone.wixzel.com', PHONE], ['evil.test', VOICE]] as const) {
+            const res = await get(running.port, '/.well-known/oauth-protected-resource/mcp', host);
+            assert.equal(res.status, 200);
+            const body = JSON.parse(res.body);
+            assert.equal(body.resource, expected, `Host: ${host}`);
+            assert.equal(body.resource_name, 'Wixzel Voice');
+            assert.equal(body.resource_documentation, 'https://docs.voice.wixzel.com/mcp-server');
+            assert.equal(res.headers.vary, 'Host');
+        }
+        // Why this exists: a connector added as mcp.phone refuses metadata that names mcp.voice.
+        assert.equal(checkResourceAllowed({ requestedResource: PHONE, configuredResource: VOICE }), false);
+        const phone = JSON.parse((await get(running.port, '/.well-known/oauth-protected-resource/mcp', 'mcp.phone.wixzel.com')).body);
+        assert.equal(checkResourceAllowed({ requestedResource: PHONE, configuredResource: phone.resource }), true);
+    });
+
+    test('the 401 challenge points at the metadata on the same host', async () => {
+        const phone = await get(running.port, '/mcp', 'mcp.phone.wixzel.com', 'POST');
+        assert.equal(phone.status, 401);
+        assert.match(String(phone.headers['www-authenticate']), /resource_metadata="https:\/\/mcp\.phone\.wixzel\.com\/\.well-known\/oauth-protected-resource\/mcp"/);
+        const voice = await get(running.port, '/mcp', 'mcp.voice.wixzel.com', 'POST');
+        assert.equal(voice.status, 401);
+        assert.match(String(voice.headers['www-authenticate']), /resource_metadata="https:\/\/mcp\.voice\.wixzel\.com\/\.well-known\/oauth-protected-resource\/mcp"/);
+    });
+
+    test('the landing page shows the canonical URL and links the product site', async () => {
+        const res = await get(running.port, '/', 'mcp.phone.wixzel.com');
+        assert.equal(res.status, 200);
+        assert.match(res.body, /<title>Wixzel Voice MCP server<\/title>/);
+        assert.match(res.body, /claude mcp add --transport http wixzel-voice https:\/\/mcp\.voice\.wixzel\.com\/mcp/);
+        assert.match(res.body, /href="https:\/\/voice\.wixzel\.com\/solutions\/ai-agents-mcp"/);
+        assert.match(res.body, /href="https:\/\/voice\.wixzel\.com"/);
+        assert.match(res.body, /href="https:\/\/voice\.wixzel\.com\/connect"/);
+        assert.match(res.body, /href="https:\/\/docs\.voice\.wixzel\.com\/mcp-server"/);
+        assert.doesNotMatch(res.body, /Wixzel Phone|phone\.wixzel\.com/);
     });
 });

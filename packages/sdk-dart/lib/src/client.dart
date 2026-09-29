@@ -20,22 +20,22 @@ import 'resources/usage.dart';
 import 'response.dart';
 import 'transport.dart';
 
-/// The Wixzel Phone API.
+/// The Wixzel Voice API.
 ///
 /// ```dart
-/// final client = WixzelPhone(apiKey: Platform.environment['WIXZEL_API_KEY']!);
+/// final client = WixzelVoice(apiKey: Platform.environment['WIXZEL_API_KEY']!);
 /// final call = await client.calls.create(
 ///   CreateCall(to: '+14155551234', agentId: agent.id),
 /// );
 /// client.close();
 /// ```
-class WixzelPhone {
+class WixzelVoice {
   /// Builds a client.
   ///
   /// [httpClient] is injectable, so tests can pass `MockClient` and apps can
   /// pass a client they have configured. When you pass one, closing it stays
   /// your job; [close] only closes a client this constructor created.
-  WixzelPhone({
+  WixzelVoice({
     required String apiKey,
     String baseUrl = defaultBaseUrl,
     String? apiVersion,
@@ -58,7 +58,7 @@ class WixzelPhone {
         ));
 
   /// Builds a client around a transport you made yourself.
-  WixzelPhone.fromTransport(this._transport)
+  WixzelVoice.fromTransport(this._transport)
       : agents = Agents(_transport),
         calls = Calls(_transport),
         leads = Leads(_transport),
@@ -153,6 +153,11 @@ class WixzelPhone {
   /// can exit.
   void close() => _transport.close();
 }
+
+/// The name this client had as `wixzel_phone` (0.3.0 and earlier), kept so
+/// code moving across only has to change its import.
+@Deprecated('Use WixzelVoice')
+typedef WixzelPhone = WixzelVoice;
 
 /// The JSON object shape the API sends and receives.
 typedef WixzelJson = Json;

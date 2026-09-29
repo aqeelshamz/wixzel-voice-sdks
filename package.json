@@ -1,8 +1,8 @@
 {
-  "name": "wixzel-phone-sdks",
+  "name": "wixzel-voice-sdks",
   "version": "0.0.0",
   "private": true,
-  "description": "Public source for the published Wixzel Phone packages. Mirrored from the monorepo that also holds the API.",
+  "description": "Public source for the published Wixzel Voice packages. Mirrored from the monorepo that also holds the API.",
   "license": "MIT",
   "workspaces": [
     "packages/sdk-ts",
@@ -17,7 +17,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/aqeelshamz/wixzel-phone-sdks.git"
+    "url": "git+https://github.com/aqeelshamz/wixzel-voice-sdks.git"
   },
-  "homepage": "https://docs.phone.wixzel.com/sdks"
+  "homepage": "https://docs.voice.wixzel.com/sdks"
 }

@@ -2,11 +2,13 @@ import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { WixzelClient, type WixzelClientOptions } from './client.js';
 import { GUIDE } from './guide.js';
 import { registerPrompts } from './prompts.js';
-import { allTools } from './tools/index.js';
+import { toolsFor } from './tools/index.js';
+import { consoleUrl } from './site.js';
 import { registerTools } from './tooling.js';
+import { VERSION } from './version.js';
 
-export const SERVER_NAME = 'wixzel-phone';
-export const SERVER_VERSION = '0.3.0';
+export const SERVER_NAME = 'wixzel-voice';
+export const SERVER_VERSION = VERSION;
 
 export interface CreateServerOptions {
     /** An already-constructed client, or the options to build one. */
@@ -14,7 +16,7 @@ export interface CreateServerOptions {
 }
 
 /**
- * Build an MCP server bound to one Wixzel Phone API key. Cheap enough to
+ * Build an MCP server bound to one Wixzel Voice API key. Cheap enough to
  * construct per request in HTTP mode, where the key arrives with each call.
  */
 export function createServer(opts: CreateServerOptions): McpServer {
@@ -24,12 +26,12 @@ export function createServer(opts: CreateServerOptions): McpServer {
         {
             name: SERVER_NAME,
             version: SERVER_VERSION,
-            title: 'Wixzel Phone',
-            websiteUrl: 'https://phone.wixzel.com',
+            title: 'Wixzel Voice',
+            websiteUrl: consoleUrl(),
             // Shown by clients that render a connector icon (claude.ai does).
             icons: [
-                { src: 'https://phone.wixzel.com/icon-192.png', mimeType: 'image/png', sizes: ['192x192'] },
-                { src: 'https://phone.wixzel.com/icon-512.png', mimeType: 'image/png', sizes: ['512x512'] },
+                { src: `${consoleUrl()}/icon-192.png`, mimeType: 'image/png', sizes: ['192x192'] },
+                { src: `${consoleUrl()}/icon-512.png`, mimeType: 'image/png', sizes: ['512x512'] },
             ],
         },
         {
@@ -38,14 +40,14 @@ export function createServer(opts: CreateServerOptions): McpServer {
         },
     );
 
-    registerTools(server, client, allTools);
+    registerTools(server, client, toolsFor());
     registerPrompts(server);
 
     server.registerResource(
         'guide',
         'wixzel://guide',
         {
-            title: 'Wixzel Phone operating guide',
+            title: 'Wixzel Voice operating guide',
             description: 'How the pieces fit together, the order to set them up in, and which tools spend money.',
             mimeType: 'text/markdown',
         },
@@ -68,7 +70,7 @@ export function createServer(opts: CreateServerOptions): McpServer {
                     uri: uri.href,
                     mimeType: 'application/json',
                     text: JSON.stringify(
-                        { base_url: client.baseUrl, key_mode: client.keyMode, tools: allTools.length },
+                        { base_url: client.baseUrl, key_mode: client.keyMode, tools: toolsFor().length },
                         null,
                         2,
                     ),

@@ -1,11 +1,11 @@
 import { test, describe, beforeEach } from 'node:test';
 import assert from 'node:assert/strict';
-import { WixzelPhone, WixzelError, WixzelConnectionError } from '../src/index.js';
+import { WixzelVoice, WixzelError, WixzelConnectionError } from '../src/index.js';
 import { apiError, fakeFetch } from './helpers/fake-fetch.js';
 
 const api = fakeFetch();
-const make = (opts: Partial<ConstructorParameters<typeof WixzelPhone>[0]> = {}) =>
-    new WixzelPhone({ apiKey: 'wv_live_abc', baseUrl: 'https://api.example', fetch: api.fetchImpl, sleep: api.sleep, ...opts });
+const make = (opts: Partial<ConstructorParameters<typeof WixzelVoice>[0]> = {}) =>
+    new WixzelVoice({ apiKey: 'wv_live_abc', baseUrl: 'https://api.example', fetch: api.fetchImpl, sleep: api.sleep, ...opts });
 
 const limited = (retryAfter?: string) => ({
     ...apiError(429, 'rate_limit_error', 'rate_limit_exceeded', 'Too many requests.'),

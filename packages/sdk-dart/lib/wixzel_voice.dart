@@ -1,11 +1,11 @@
-/// The official Dart SDK for the [Wixzel Phone](https://phone.wixzel.com)
-/// API: AI voice agents that place and answer real phone calls over your own
+/// The official Dart SDK for the [Wixzel Voice](https://voice.wixzel.com)
+/// API: build AI agents that place and answer real phone calls over your own
 /// SIP trunk.
 ///
 /// ```dart
-/// import 'package:wixzel_phone/wixzel_phone.dart';
+/// import 'package:wixzel_voice/wixzel_voice.dart';
 ///
-/// final client = WixzelPhone(apiKey: 'wv_live_…');
+/// final client = WixzelVoice(apiKey: 'wv_live_…');
 /// final agent = await client.agents.create(CreateAgent(
 ///   name: 'Support',
 ///   systemPrompt: 'You are a concise support agent.',

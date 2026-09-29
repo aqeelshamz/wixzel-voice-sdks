@@ -1,10 +1,10 @@
-# wixzel_phone
+# wixzel_voice
 
-[![pub.dev](https://img.shields.io/pub/v/wixzel_phone?style=flat-square&logo=dart&logoColor=white&label=pub.dev&color=A0D425&labelColor=0D0D0D)](https://pub.dev/packages/wixzel_phone)
-[![npm](https://img.shields.io/npm/v/wixzel-phone?style=flat-square&logo=npm&logoColor=white&label=npm&color=A0D425&labelColor=0D0D0D)](https://www.npmjs.com/package/wixzel-phone)
+[![pub.dev](https://img.shields.io/pub/v/wixzel_voice?style=flat-square&logo=dart&logoColor=white&label=pub.dev&color=A0D425&labelColor=0D0D0D)](https://pub.dev/packages/wixzel_voice)
+[![npm](https://img.shields.io/npm/v/wixzel-voice?style=flat-square&logo=npm&logoColor=white&label=npm&color=A0D425&labelColor=0D0D0D)](https://www.npmjs.com/package/wixzel-voice)
 [![MIT](https://img.shields.io/badge/licence-MIT-A0D425?style=flat-square&labelColor=0D0D0D)](LICENSE)
 
-The official Dart SDK for the [Wixzel Phone](https://phone.wixzel.com) API: AI voice agents that place and answer real phone calls over your own SIP trunk. One API key, one prepaid balance, every voice engine.
+The official Dart SDK for the [Wixzel Voice](https://voice.wixzel.com) API: build AI agents that place and answer real phone calls over your own SIP trunk. One API key, one prepaid balance, every voice engine.
 
 Works in Dart and in Flutter, including on the web.
 
@@ -16,15 +16,17 @@ Works in Dart and in Flutter, including on the web.
 - One dependency: `package:http`.
 
 ```bash
-dart pub add wixzel_phone
+dart pub add wixzel_voice
 ```
+
+Up to 0.3.0 this package was published as `wixzel_phone`. To move across, depend on `wixzel_voice` and import `package:wixzel_voice/wixzel_voice.dart`; `WixzelPhone` still works as a deprecated alias of `WixzelVoice`. See the [changelog](CHANGELOG.md).
 
 ## Quickstart
 
 ```dart
-import 'package:wixzel_phone/wixzel_phone.dart';
+import 'package:wixzel_voice/wixzel_voice.dart';
 
-final client = WixzelPhone(apiKey: 'wv_live_…');
+final client = WixzelVoice(apiKey: 'wv_live_…');
 
 // What can the platform serve right now, and at what price?
 final engines = await client.engines.list();
@@ -117,7 +119,7 @@ print(result.data.id);
 ## Pinning a version
 
 ```dart
-final client = WixzelPhone(apiKey: apiKey, apiVersion: '2026-09-01');
+final client = WixzelVoice(apiKey: apiKey, apiVersion: '2026-09-01');
 ```
 
 Sends `Wixzel-Version` so an upgrade is something you do rather than something that happens to you.
@@ -127,7 +129,7 @@ Sends `Wixzel-Version` so an upgrade is something you do rather than something t
 | Option | Default | |
 |---|---|---|
 | `apiKey` | required | `wv_live_…` or `wv_test_…` |
-| `baseUrl` | `https://api.phone.wixzel.com` | For a self-hosted API |
+| `baseUrl` | `https://api.voice.wixzel.com` | For a self-hosted API |
 | `apiVersion` | none | `Wixzel-Version` date pin |
 | `timeout` | 30 s | Per attempt |
 | `maxRetries` | 2 | Retries after the first attempt |
@@ -142,9 +144,9 @@ The package is pure Dart with no `dart:io` in its public path, so it runs on eve
 
 ## Related
 
-- [Documentation](https://docs.phone.wixzel.com/sdks) · [API reference](https://docs.phone.wixzel.com/api-reference)
-- [Source](https://github.com/aqeelshamz/wixzel-phone-sdks), where issues and pull requests are read. The SDK is developed in the private monorepo that also holds the API, so a change to an endpoint and the change to its client land together, and is mirrored here on release.
-- [`wixzel-phone`](https://www.npmjs.com/package/wixzel-phone), the same SDK for TypeScript and JavaScript
-- [`wixzel-phone-mcp`](https://www.npmjs.com/package/wixzel-phone-mcp), the MCP server for Claude Code and claude.ai
+- [Documentation](https://docs.voice.wixzel.com/sdks) · [API reference](https://docs.voice.wixzel.com/api-reference)
+- [Source](https://github.com/aqeelshamz/wixzel-voice-sdks), where issues and pull requests are read. The SDK is developed in the private monorepo that also holds the API, so a change to an endpoint and the change to its client land together, and is mirrored here on release.
+- [`wixzel-voice`](https://www.npmjs.com/package/wixzel-voice), the same SDK for TypeScript and JavaScript
+- [`wixzel-voice-mcp`](https://www.npmjs.com/package/wixzel-voice-mcp), the MCP server for Claude Code and claude.ai
 
 MIT.

@@ -2,7 +2,7 @@ import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:test/test.dart';
-import 'package:wixzel_phone/wixzel_phone.dart';
+import 'package:wixzel_voice/wixzel_voice.dart';
 
 void main() {
   group('µ-law', () {
@@ -41,7 +41,7 @@ void main() {
     final s = RealtimeSession.fromJson({
       'id': 'rt-abc', 'object': 'realtime_session',
       'client_secret': {'value': 'rt_secret_x', 'expires_at': '2026-09-12T10:00:00.000Z'},
-      'url': 'wss://api.phone.wixzel.com/v1/realtime', 'agent_id': 'a1', 'engine': 'gemini_live',
+      'url': 'wss://api.voice.wixzel.com/v1/realtime', 'agent_id': 'a1', 'engine': 'gemini_live',
       'max_duration_seconds': 600, 'audio_format': 'mulaw_8000',
     });
     expect(s.clientSecret, 'rt_secret_x');

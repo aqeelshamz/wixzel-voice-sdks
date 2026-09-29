@@ -1,31 +1,32 @@
 #!/usr/bin/env node
 /**
- * wixzel-phone-mcp
+ * wixzel-voice-mcp
  *
- *   wixzel-phone-mcp                 stdio transport, key from WIXZEL_API_KEY
- *   wixzel-phone-mcp --http [port]   Streamable HTTP on /mcp; each request's
+ *   wixzel-voice-mcp                 stdio transport, key from WIXZEL_API_KEY
+ *   wixzel-voice-mcp --http [port]   Streamable HTTP on /mcp; each request's
  *                                    Authorization: Bearer is the API key
  *
  * Environment:
  *   WIXZEL_API_KEY        wv_live_… or wv_test_… (required for stdio; a local-only fallback for --http)
- *   WIXZEL_API_BASE_URL   default https://api.phone.wixzel.com
+ *   WIXZEL_API_BASE_URL   default https://api.voice.wixzel.com
  *   WIXZEL_API_VERSION    optional Wixzel-Version date pin
  *   MCP_PORT              --http port (default 3939)
  *   MCP_BIND              --http interface (default 127.0.0.1)
- *   MCP_PUBLIC_URL        the URL clients use, e.g. https://mcp.phone.wixzel.com/mcp
+ *   MCP_PUBLIC_URL        the URL clients use, e.g. https://mcp.voice.wixzel.com/mcp
  */
 
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
 import { DEFAULT_BASE_URL } from './client.js';
 import { resolveHttpOptions, startHttp } from './http.js';
 import { createServer, SERVER_VERSION } from './server.js';
+import { consoleUrl } from './site.js';
 
-const HELP = `wixzel-phone-mcp ${SERVER_VERSION}
+const HELP = `wixzel-voice-mcp ${SERVER_VERSION}
 
 Usage:
-  wixzel-phone-mcp                Run over stdio (for Claude Code, Claude Desktop, Cursor…)
-  wixzel-phone-mcp --http [port]  Run a Streamable HTTP server (default http://127.0.0.1:3939/mcp)
-  wixzel-phone-mcp --help
+  wixzel-voice-mcp                Run over stdio (for Claude Code, Claude Desktop, Cursor…)
+  wixzel-voice-mcp --http [port]  Run a Streamable HTTP server (default http://127.0.0.1:3939/mcp)
+  wixzel-voice-mcp --help
 
 Environment:
   WIXZEL_API_KEY       Your API key. Required for stdio. For --http it is only accepted on a loopback MCP_PUBLIC_URL.
@@ -38,8 +39,8 @@ async function runStdio(): Promise<void> {
     const apiKey = process.env.WIXZEL_API_KEY;
     if (!apiKey) {
         process.stderr.write(
-            'wixzel-phone-mcp: WIXZEL_API_KEY is not set.\n' +
-                'Create a key at https://phone.wixzel.com/connect and pass it as an environment variable.\n',
+            'wixzel-voice-mcp: WIXZEL_API_KEY is not set.\n' +
+                `Create a key at ${consoleUrl()}/connect and pass it as an environment variable.\n`,
         );
         process.exit(1);
     }
@@ -52,14 +53,14 @@ async function runStdio(): Promise<void> {
     });
     await server.connect(new StdioServerTransport());
     // stdout is the protocol channel; everything human goes to stderr.
-    process.stderr.write(`wixzel-phone-mcp ${SERVER_VERSION} ready on stdio (${apiKey.slice(0, 8)}…)\n`);
+    process.stderr.write(`wixzel-voice-mcp ${SERVER_VERSION} ready on stdio (${apiKey.slice(0, 8)}…)\n`);
 }
 
 async function runHttp(cliPort?: number): Promise<void> {
     const opts = resolveHttpOptions(process.env, cliPort);
     const running = await startHttp(opts);
     process.stderr.write(
-        `wixzel-phone-mcp ${SERVER_VERSION} listening on http://${opts.bind}:${running.port}${new URL(opts.publicUrl).pathname}` +
+        `wixzel-voice-mcp ${SERVER_VERSION} listening on http://${opts.bind}:${running.port}${new URL(opts.publicUrl).pathname}` +
             ` as ${opts.publicUrl}` +
             (opts.fallbackKey ? ' (WIXZEL_API_KEY fallback, loopback only)' : ' (bearer or OAuth required)') +
             '\n',
@@ -91,6 +92,6 @@ async function main(): Promise<void> {
 }
 
 main().catch((error) => {
-    process.stderr.write(`wixzel-phone-mcp: ${(error as Error).message}\n`);
+    process.stderr.write(`wixzel-voice-mcp: ${(error as Error).message}\n`);
     process.exit(1);
 });

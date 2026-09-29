@@ -1,10 +1,10 @@
 import { test, describe, beforeEach } from 'node:test';
 import assert from 'node:assert/strict';
-import { WixzelPhone, Page } from '../src/index.js';
+import { WixzelVoice, Page } from '../src/index.js';
 import { fakeFetch } from './helpers/fake-fetch.js';
 
 const api = fakeFetch();
-const client = new WixzelPhone({ apiKey: 'wv_live_abc', baseUrl: 'https://api.example', fetch: api.fetchImpl, sleep: api.sleep });
+const client = new WixzelVoice({ apiKey: 'wv_live_abc', baseUrl: 'https://api.example', fetch: api.fetchImpl, sleep: api.sleep });
 
 const page = (ids: string[], next: string | null) => ({
     status: 200,

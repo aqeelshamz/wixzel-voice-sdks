@@ -16,7 +16,7 @@ export interface ResponseMeta {
     headers: Headers;
 }
 
-const LAST_RESPONSE = Symbol.for('wixzel-phone.lastResponse');
+const LAST_RESPONSE = Symbol.for('wixzel-voice.lastResponse');
 
 export function attachResponse<T>(value: T, meta: ResponseMeta): T {
     if (value !== null && typeof value === 'object') {

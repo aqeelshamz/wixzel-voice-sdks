@@ -2,7 +2,7 @@ import 'dart:convert';
 
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
-import 'package:wixzel_phone/wixzel_phone.dart';
+import 'package:wixzel_voice/wixzel_voice.dart';
 
 /// One request the fake API received.
 class Recorded {
@@ -75,14 +75,14 @@ class FakeApi {
       });
 
   /// A client wired to this fake, with retries that do not really wait.
-  WixzelPhone wixzel({
+  WixzelVoice wixzel({
     String apiKey = 'wv_test_abc',
     String baseUrl = 'https://api.example',
     String? apiVersion,
     int maxRetries = 2,
     Map<String, String> defaultHeaders = const {},
   }) =>
-      WixzelPhone(
+      WixzelVoice(
         apiKey: apiKey,
         baseUrl: baseUrl,
         apiVersion: apiVersion,

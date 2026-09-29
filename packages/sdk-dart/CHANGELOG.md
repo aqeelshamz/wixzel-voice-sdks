@@ -1,3 +1,20 @@
+## 0.4.0 (2026-09-29)
+
+Renamed from `wixzel_phone` to `wixzel_voice`, because the product is called
+Wixzel Voice again. The API surface is unchanged.
+
+- Depend on `wixzel_voice` and import
+  `package:wixzel_voice/wixzel_voice.dart`.
+- The client class is `WixzelVoice`. The old name, `WixzelPhone`, is kept as a
+  deprecated typedef of the same class, so existing code only has to change
+  its import.
+- The default base URL (`defaultBaseUrl`) is now
+  `https://api.voice.wixzel.com`. `https://api.phone.wixzel.com` keeps serving,
+  so `wixzel_phone` 0.3.0 and earlier keep working without a change.
+- Requests send `User-Agent: wixzel-voice/0.4.0` and
+  `X-Wixzel-Client: wixzel-voice-dart/0.4.0`, and error messages the SDK raises
+  itself begin `wixzel_voice:`.
+
 ## 0.3.0
 
 Realtime: talk to an agent from a Flutter or Dart app, with no SIP trunk.

@@ -5,12 +5,12 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:test/test.dart';
-import 'package:wixzel_phone/wixzel_phone.dart';
+import 'package:wixzel_voice/wixzel_voice.dart';
 
 /// The SDK is hand-written; this is what keeps it honest against the API.
 void main() {
   final specFile = File('../../docs/openapi.json');
-  final client = WixzelPhone(apiKey: 'wv_test_x');
+  final client = WixzelVoice(apiKey: 'wv_test_x');
 
   group('spec coverage', () {
     late Map<String, dynamic> spec;

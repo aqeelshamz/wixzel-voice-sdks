@@ -1,5 +1,5 @@
 /**
- * A small HTTP client for the Wixzel Phone API.
+ * A small HTTP client for the Wixzel Voice API.
  *
  * Deliberately dependency-free: `fetch` is built into Node 20+, and the API's
  * conventions (bearer key, JSON, structured errors with a request_id, cursor
@@ -8,9 +8,14 @@
  */
 
 import { randomUUID } from 'node:crypto';
+import { VERSION } from './version.js';
 
-export const DEFAULT_BASE_URL = 'https://api.phone.wixzel.com';
-export const USER_AGENT = 'wixzel-phone-mcp/0.2.1';
+/**
+ * api.phone.wixzel.com, the default before 0.4.0, keeps serving the same API,
+ * so older releases of this package keep working.
+ */
+export const DEFAULT_BASE_URL = 'https://api.voice.wixzel.com';
+export const USER_AGENT = `wixzel-voice-mcp/${VERSION}`;
 
 export type HttpMethod = 'GET' | 'POST' | 'PATCH' | 'DELETE';
 

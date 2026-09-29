@@ -1,0 +1,52 @@
+{
+  "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
+  "name": "com.wixzel/voice",
+  "title": "Wixzel Voice",
+  "description": "Lets Claude, ChatGPT, Cursor or any MCP client place and answer real phone calls.",
+  "version": "0.4.0",
+  "websiteUrl": "https://voice.wixzel.com/solutions/ai-agents-mcp",
+  "repository": {
+    "url": "https://github.com/aqeelshamz/wixzel-voice-sdks",
+    "source": "github",
+    "subfolder": "apps/mcp"
+  },
+  "icons": [
+    {
+      "src": "https://voice.wixzel.com/icon-192.png",
+      "mimeType": "image/png",
+      "sizes": ["192x192"]
+    },
+    {
+      "src": "https://voice.wixzel.com/icon-512.png",
+      "mimeType": "image/png",
+      "sizes": ["512x512"]
+    }
+  ],
+  "packages": [
+    {
+      "registryType": "npm",
+      "registryBaseUrl": "https://registry.npmjs.org",
+      "identifier": "wixzel-voice-mcp",
+      "version": "0.4.0",
+      "runtimeHint": "npx",
+      "transport": {
+        "type": "stdio"
+      },
+      "environmentVariables": [
+        {
+          "name": "WIXZEL_API_KEY",
+          "description": "Your Wixzel Voice API key, wv_live_... or wv_test_..., from https://voice.wixzel.com/connect",
+          "format": "string",
+          "isRequired": true,
+          "isSecret": true
+        }
+      ]
+    }
+  ],
+  "remotes": [
+    {
+      "type": "streamable-http",
+      "url": "https://mcp.voice.wixzel.com/mcp"
+    }
+  ]
+}

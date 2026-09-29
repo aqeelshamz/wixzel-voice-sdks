@@ -1,3 +1,4 @@
+import { isSelfHosted } from '../site.js';
 import type { ToolDef } from '../tooling.js';
 import { agentTools } from './agents.js';
 import { apiKeyTools } from './api-keys.js';
@@ -29,3 +30,11 @@ export const allTools: ToolDef<any>[] = [
     ...billingTools,
     ...apiKeyTools,
 ];
+
+/** Tools with nothing to do on a self-hosted install, where no one buys credit. */
+const HOSTED_ONLY = new Set(['create_topup']);
+
+/** The tools this server registers, for the edition it runs as. */
+export function toolsFor(env: NodeJS.ProcessEnv = process.env): ToolDef<any>[] {
+    return isSelfHosted(env) ? allTools.filter((tool) => !HOSTED_ONLY.has(tool.name)) : allTools;
+}

@@ -1,17 +1,17 @@
 {
   "openapi": "3.1.0",
   "info": {
-    "title": "Wixzel Phone API",
+    "title": "Wixzel Voice API",
     "version": "2026-09-01",
     "description": "APIs for AI voice agents. One key, one balance, every voice engine.\n\n## Authentication\nSend your key as `Authorization: Bearer wv_live_...`. Keys are scoped — grant only what an integration needs. There is no admin scope.\n\n## Versioning\nThe `/v1` prefix covers additive changes. Behavioural changes ship behind a dated `Wixzel-Version` header, and existing keys keep the behaviour they were created with.\n\n## Money\nAmounts are integer **micro-USD** (1,000,000 = $1.00). Voice usage is billed per second, per token and per character, so a float dollar figure cannot represent it without disagreeing with the ledger.\n\n## Errors\nEvery error carries a stable `code` and a `request_id`. Match on `code`; the `message` is for humans and may change.",
     "contact": {
-      "name": "Wixzel Phone",
-      "url": "https://phone.wixzel.com"
+      "name": "Wixzel Voice",
+      "url": "https://voice.wixzel.com"
     }
   },
   "servers": [
     {
-      "url": "https://api.phone.wixzel.com",
+      "url": "https://api.voice.wixzel.com",
       "description": "Production"
     }
   ],
@@ -78,7 +78,7 @@
       "bearerAuth": {
         "type": "http",
         "scheme": "bearer",
-        "description": "Your Wixzel Phone API key: `Authorization: Bearer wv_live_...`. Keys are scoped; grant only what the integration needs."
+        "description": "Your Wixzel Voice API key: `Authorization: Bearer wv_live_...`. Keys are scoped; grant only what the integration needs."
       }
     },
     "schemas": {
@@ -827,7 +827,7 @@
             "minLength": 1,
             "maxLength": 300,
             "description": "What to say. Defaults to the agent's opening message, which is usually what you want to hear.",
-            "example": "This is a test call from Wixzel Phone. Goodbye."
+            "example": "This is a test call from Wixzel Voice. Goodbye."
           }
         },
         "required": [
@@ -869,7 +869,7 @@
           },
           "url": {
             "type": "string",
-            "example": "wss://api.phone.wixzel.com/v1/realtime"
+            "example": "wss://api.voice.wixzel.com/v1/realtime"
           },
           "agent_id": {
             "type": "string",
@@ -3348,6 +3348,14 @@
               "null"
             ],
             "description": "A sample of the voice, where the provider hosts one. Null otherwise."
+          },
+          "category": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "The provider's own grouping, where it publishes one — for ElevenLabs `premade`, `cloned`, `generated` or `professional`. Null for a provider that ships one fixed roster with no grouping, such as Google or Sarvam.",
+            "example": "premade"
           }
         },
         "required": [
@@ -3355,7 +3363,8 @@
           "name",
           "provider",
           "description",
-          "preview_url"
+          "preview_url",
+          "category"
         ]
       },
       "EngineVoiceList": {
@@ -4169,7 +4178,7 @@
           }
         ],
         "summary": "Create a realtime session",
-        "description": "Mint a one-minute, single-use `client_secret` that lets a browser or app talk to one of your agents over `wss://api.phone.wixzel.com/v1/realtime` — no SIP trunk, no phone number. Call this from your server; the API key must never reach the client.\n\nNothing is charged here. When the socket connects, the session is admitted exactly like a call: it needs credit, counts toward your concurrent-call limit and the key's spend limit, is billed at the same per-minute price as a phone call on the same engine, and appears in GET /v1/calls with `channel: \"web\"`, followed by a `callCompleted` webhook.\n\nHuman transfer is not available on web sessions — there is no second line to hand the caller to.",
+        "description": "Mint a one-minute, single-use `client_secret` that lets a browser or app talk to one of your agents over `wss://api.voice.wixzel.com/v1/realtime` — no SIP trunk, no phone number. Call this from your server; the API key must never reach the client.\n\nNothing is charged here. When the socket connects, the session is admitted exactly like a call: it needs credit, counts toward your concurrent-call limit and the key's spend limit, is billed at the same per-minute price as a phone call on the same engine, and appears in GET /v1/calls with `channel: \"web\"`, followed by a `callCompleted` webhook.\n\nHuman transfer is not available on web sessions — there is no second line to hand the caller to.",
         "requestBody": {
           "content": {
             "application/json": {

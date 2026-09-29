@@ -13,7 +13,7 @@ import { attachResponse, metaFrom } from './response.js';
 import type { ApiErrorBody, ListResponse } from '../types.js';
 import { CLIENT_HEADER, USER_AGENT } from '../version.js';
 
-export const DEFAULT_BASE_URL = 'https://api.phone.wixzel.com';
+export const DEFAULT_BASE_URL = 'https://api.voice.wixzel.com';
 
 export type HttpMethod = 'GET' | 'POST' | 'PATCH' | 'DELETE';
 export type QueryValue = string | number | boolean | null | undefined;
@@ -68,7 +68,7 @@ export class Http {
     private readonly sleep: (ms: number) => Promise<void>;
 
     constructor(opts: HttpOptions) {
-        if (!opts.apiKey) throw new TypeError('wixzel-phone: apiKey is required');
+        if (!opts.apiKey) throw new TypeError('wixzel-voice: apiKey is required');
         this.apiKey = opts.apiKey;
         this.baseUrl = (opts.baseUrl ?? DEFAULT_BASE_URL).replace(/\/+$/, '');
         this.apiVersion = opts.apiVersion;
@@ -78,7 +78,7 @@ export class Http {
         this.defaultHeaders = opts.defaultHeaders ?? {};
         this.sleep = opts.sleep ?? ((ms) => new Promise((resolve) => setTimeout(resolve, ms)));
         if (typeof this.fetchImpl !== 'function') {
-            throw new TypeError('wixzel-phone: no fetch available; pass one in the options');
+            throw new TypeError('wixzel-voice: no fetch available; pass one in the options');
         }
     }
 
@@ -125,7 +125,7 @@ export class Http {
         const idempotencyKey = init.idempotencyKey ?? (init.idempotent ? globalThis.crypto.randomUUID() : undefined);
         if (idempotencyKey !== undefined) {
             if (idempotencyKey.length === 0 || idempotencyKey.length > MAX_IDEMPOTENCY_KEY) {
-                throw new TypeError(`wixzel-phone: idempotencyKey must be 1–${MAX_IDEMPOTENCY_KEY} characters`);
+                throw new TypeError(`wixzel-voice: idempotencyKey must be 1–${MAX_IDEMPOTENCY_KEY} characters`);
             }
             headers['Idempotency-Key'] = idempotencyKey;
         }
@@ -151,7 +151,7 @@ export class Http {
                     continue;
                 }
                 throw new WixzelConnectionError(
-                    `wixzel-phone: ${method} ${path} failed after ${attempt + 1} attempt(s): ${(error as Error).message}`,
+                    `wixzel-voice: ${method} ${path} failed after ${attempt + 1} attempt(s): ${(error as Error).message}`,
                     error,
                 );
             }

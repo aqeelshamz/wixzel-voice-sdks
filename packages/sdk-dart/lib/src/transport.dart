@@ -12,7 +12,7 @@ import 'uuid.dart';
 import 'version.dart';
 
 /// The default API host.
-const String defaultBaseUrl = 'https://api.phone.wixzel.com';
+const String defaultBaseUrl = 'https://api.voice.wixzel.com';
 
 const int _maxIdempotencyKeyLength = 255;
 const Duration _retryAfterCap = Duration(seconds: 10);
@@ -59,7 +59,7 @@ class Transport {
         _random = random ?? Random() {
     if (apiKey.isEmpty) {
       throw ArgumentError.value(
-          apiKey, 'apiKey', 'wixzel_phone: an API key is required');
+          apiKey, 'apiKey', 'wixzel_voice: an API key is required');
     }
   }
 
@@ -126,7 +126,7 @@ class Transport {
         throw ArgumentError.value(
           key,
           'idempotencyKey',
-          'wixzel_phone: must be 1–$_maxIdempotencyKeyLength characters',
+          'wixzel_voice: must be 1–$_maxIdempotencyKeyLength characters',
         );
       }
       requestHeaders['Idempotency-Key'] = key;
@@ -151,7 +151,7 @@ class Transport {
           continue;
         }
         throw WixzelConnectionException(
-          'wixzel_phone: $method $path failed after ${attempt + 1} attempt(s): $error',
+          'wixzel_voice: $method $path failed after ${attempt + 1} attempt(s): $error',
           error,
         );
       }
@@ -262,7 +262,7 @@ class Transport {
       throw WixzelException(
         statusCode: raw.statusCode,
         code: 'invalid_response',
-        message: 'wixzel_phone: expected a JSON object from $method $path',
+        message: 'wixzel_voice: expected a JSON object from $method $path',
         headers: raw.headers,
         requestId: raw.requestId,
       );
@@ -315,7 +315,7 @@ class Transport {
         throw WixzelException(
           statusCode: body.statusCode,
           code: 'invalid_response',
-          message: 'wixzel_phone: expected a list envelope from GET $path',
+          message: 'wixzel_voice: expected a list envelope from GET $path',
           headers: body.headers,
           requestId: body.requestId,
         );

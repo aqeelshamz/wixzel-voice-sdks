@@ -1,5 +1,22 @@
 # Changelog
 
+## 0.4.0 (2026-09-29)
+
+Renamed from `wixzel-phone` to `wixzel-voice`, because the product is called
+Wixzel Voice again. The API surface is unchanged.
+
+- Install `wixzel-voice`, and import from `wixzel-voice` and
+  `wixzel-voice/realtime`.
+- The client class is `WixzelVoice`, with `WixzelVoiceOptions`. The old names,
+  `WixzelPhone` and `WixzelPhoneOptions`, are kept as deprecated aliases of the
+  same class and type, so existing code only has to change its import.
+- The default base URL is now `https://api.voice.wixzel.com`.
+  `https://api.phone.wixzel.com` keeps serving, so `wixzel-phone` 0.3.0 and
+  earlier keep working without a change.
+- Requests send `User-Agent: wixzel-voice/0.4.0` and
+  `X-Wixzel-Client: wixzel-voice-ts/0.4.0`, and error messages the SDK raises
+  itself begin `wixzel-voice:`.
+
 ## 0.3.0
 
 Realtime: talk to an agent from a browser or an app, with no SIP trunk.

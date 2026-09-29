@@ -1,10 +1,10 @@
-# wixzel-phone
+# wixzel-voice
 
-[![npm](https://img.shields.io/npm/v/wixzel-phone?style=flat-square&logo=npm&logoColor=white&label=npm&color=A0D425&labelColor=0D0D0D)](https://www.npmjs.com/package/wixzel-phone)
-[![pub.dev](https://img.shields.io/pub/v/wixzel_phone?style=flat-square&logo=dart&logoColor=white&label=pub.dev&color=A0D425&labelColor=0D0D0D)](https://pub.dev/packages/wixzel_phone)
+[![npm](https://img.shields.io/npm/v/wixzel-voice?style=flat-square&logo=npm&logoColor=white&label=npm&color=A0D425&labelColor=0D0D0D)](https://www.npmjs.com/package/wixzel-voice)
+[![pub.dev](https://img.shields.io/pub/v/wixzel_voice?style=flat-square&logo=dart&logoColor=white&label=pub.dev&color=A0D425&labelColor=0D0D0D)](https://pub.dev/packages/wixzel_voice)
 [![MIT](https://img.shields.io/badge/licence-MIT-A0D425?style=flat-square&labelColor=0D0D0D)](LICENSE)
 
-The official TypeScript and JavaScript SDK for the [Wixzel Phone](https://phone.wixzel.com) API: AI voice agents that place and answer real phone calls over your own SIP trunk. One API key, one prepaid balance, every voice engine.
+The official TypeScript and JavaScript SDK for the [Wixzel Voice](https://voice.wixzel.com) API: build AI agents that place and answer real phone calls over your own SIP trunk. One API key, one prepaid balance, every voice engine.
 
 - Every `/v1` endpoint as a typed method, with types generated from the same OpenAPI document that validates the API.
 - Cursor pagination you can `for await`.
@@ -14,15 +14,17 @@ The official TypeScript and JavaScript SDK for the [Wixzel Phone](https://phone.
 - No dependencies. Node 20+, browsers, and edge runtimes with `fetch`.
 
 ```bash
-npm install wixzel-phone
+npm install wixzel-voice
 ```
+
+Up to 0.3.0 this package was published as `wixzel-phone`. To move across, install `wixzel-voice` and change the import; `WixzelPhone` still works as a deprecated alias of `WixzelVoice`. See the [changelog](CHANGELOG.md).
 
 ## Quickstart
 
 ```ts
-import { WixzelPhone } from 'wixzel-phone';
+import { WixzelVoice } from 'wixzel-voice';
 
-const client = new WixzelPhone({ apiKey: process.env.WIXZEL_API_KEY! });
+const client = new WixzelVoice({ apiKey: process.env.WIXZEL_API_KEY! });
 
 // What can the platform serve right now, and at what price?
 const engines = await client.engines.list();
@@ -67,7 +69,7 @@ while (page) {
 Match on `code`; the message may be reworded.
 
 ```ts
-import { WixzelError, WixzelConnectionError } from 'wixzel-phone';
+import { WixzelError, WixzelConnectionError } from 'wixzel-voice';
 
 try {
   await client.calls.create({ to, agent_id });
@@ -86,7 +88,7 @@ try {
 `calls.create` and `billing.createTopup` require an `Idempotency-Key`; the SDK generates one per call and reuses it across its own retries. Pass your own to make a retry from your side safe too, and read `Idempotent-Replay` through `lastResponse`:
 
 ```ts
-import { lastResponse } from 'wixzel-phone';
+import { lastResponse } from 'wixzel-voice';
 
 const call = await client.calls.create({ to, agent_id }, { idempotencyKey: `order-${orderId}` });
 if (lastResponse(call)?.idempotentReplay) console.log('the server had already placed this call');
@@ -101,7 +103,7 @@ if (lastResponse(call)?.idempotentReplay) console.log('the server had already pl
 ## Pinning a version
 
 ```ts
-const client = new WixzelPhone({ apiKey, apiVersion: '2026-09-01' });
+const client = new WixzelVoice({ apiKey, apiVersion: '2026-09-01' });
 ```
 
 Sends `Wixzel-Version` so an upgrade is something you do rather than something that happens to you.
@@ -111,7 +113,7 @@ Sends `Wixzel-Version` so an upgrade is something you do rather than something t
 | Option | Default | |
 |---|---|---|
 | `apiKey` | required | `wv_live_…` or `wv_test_…` |
-| `baseUrl` | `https://api.phone.wixzel.com` | For a self-hosted API |
+| `baseUrl` | `https://api.voice.wixzel.com` | For a self-hosted API |
 | `apiVersion` | none | `Wixzel-Version` date pin |
 | `timeoutMs` | 30000 | Per attempt |
 | `maxRetries` | 2 | Retries after the first attempt |
@@ -128,9 +130,9 @@ The SDK runs in browsers, but the API's CORS policy does not expose `Retry-After
 
 ## Related
 
-- [Documentation](https://docs.phone.wixzel.com/sdks) · [API reference](https://docs.phone.wixzel.com/api-reference)
-- [Source](https://github.com/aqeelshamz/wixzel-phone-sdks), where issues and pull requests are read. The SDK is developed in the private monorepo that also holds the API, so a change to an endpoint and the change to its client land together, and is mirrored here on release.
-- [`wixzel_phone`](https://pub.dev/packages/wixzel_phone), the same SDK for Dart and Flutter
-- [`wixzel-phone-mcp`](https://www.npmjs.com/package/wixzel-phone-mcp), the MCP server for Claude Code and claude.ai
+- [Documentation](https://docs.voice.wixzel.com/sdks) · [API reference](https://docs.voice.wixzel.com/api-reference)
+- [Source](https://github.com/aqeelshamz/wixzel-voice-sdks), where issues and pull requests are read. The SDK is developed in the private monorepo that also holds the API, so a change to an endpoint and the change to its client land together, and is mirrored here on release.
+- [`wixzel_voice`](https://pub.dev/packages/wixzel_voice), the same SDK for Dart and Flutter
+- [`wixzel-voice-mcp`](https://www.npmjs.com/package/wixzel-voice-mcp), the MCP server for Claude Code and claude.ai
 
 MIT.

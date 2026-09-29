@@ -4,14 +4,14 @@ import { GUIDE } from './guide.js';
 
 /**
  * Prompts are the slash-command surface: in Claude Code they appear as
- * /mcp__wixzel-phone__<name>. Each one is a worked procedure, phrased as a
+ * /mcp__wixzel-voice__<name>. Each one is a worked procedure, phrased as a
  * request the user would make.
  */
 export function registerPrompts(server: McpServer): void {
     server.registerPrompt(
         'quickstart',
         {
-            title: 'Set up Wixzel Phone from nothing',
+            title: 'Set up Wixzel Voice from nothing',
             description:
                 'Walk through connecting a carrier, registering a number, building an agent and placing a first call, checking in with the user at each step that costs money or needs their credentials.',
             argsSchema: {
@@ -29,7 +29,7 @@ export function registerPrompts(server: McpServer): void {
                         type: 'text',
                         text:
                             `${GUIDE}\n\n---\n\n` +
-                            `Set up my Wixzel Phone account so an agent can make calls${goal ? ` to ${goal}` : ''}. ` +
+                            `Set up my Wixzel Voice account so an agent can make calls${goal ? ` to ${goal}` : ''}. ` +
                             'Start by checking what already exists (list_sip_trunks, list_phone_numbers, list_agents, get_balance) so nothing is duplicated. ' +
                             'Then follow the setup order in the guide. Ask me for carrier credentials rather than inventing them, ' +
                             'and stop to confirm before anything that spends money or dials a phone. ' +
@@ -56,7 +56,7 @@ export function registerPrompts(server: McpServer): void {
                     content: {
                         type: 'text',
                         text:
-                            `Diagnose Wixzel Phone call ${call_id}. ` +
+                            `Diagnose Wixzel Voice call ${call_id}. ` +
                             'Fetch it with get_call and read status, failure_code, failure_reason, errors and transfers. ' +
                             'Pull list_usage_events with its session_id to see what was billed. ' +
                             'If it did not connect, find the phone number and trunk it used (list_phone_numbers, get_sip_trunk), run check_sip_trunk_status and get_sip_trunk_logs, ' +
@@ -89,7 +89,7 @@ export function registerPrompts(server: McpServer): void {
                     content: {
                         type: 'text',
                         text:
-                            `Explain my Wixzel Phone spend for ${period ?? 'this month'}. ` +
+                            `Explain my Wixzel Voice spend for ${period ?? 'this month'}. ` +
                             'Use get_usage_summary for the totals by component and model, get_balance for what is left, and list_calls (with started_after/started_before) to find the most expensive calls, ' +
                             'then list_usage_events by session_id for the top two or three. ' +
                             'Convert micro-USD to dollars (1,000,000 = $1.00). Present a short table by component, the top calls with duration and cost, and one or two suggestions for reducing cost, ' +

@@ -1,7 +1,7 @@
 {
-  "name": "wixzel-phone",
-  "version": "0.3.0",
-  "description": "Official TypeScript and JavaScript SDK for the Wixzel Phone API: AI voice agents that place and answer real phone calls over your own SIP trunk.",
+  "name": "wixzel-voice",
+  "version": "0.4.0",
+  "description": "Official TypeScript and JavaScript SDK for the Wixzel Voice API: build AI agents that place and answer real phone calls over your own SIP trunk.",
   "license": "MIT",
   "type": "module",
   "main": "./dist/cjs/index.js",
@@ -52,22 +52,32 @@
   },
   "keywords": [
     "wixzel",
+    "wixzel-voice",
     "wixzel-phone",
     "voice-agents",
+    "voice-ai",
+    "ai-voice-agent",
+    "voice-agent-api",
+    "ai-calling",
+    "phone-calls",
     "telephony",
     "sip",
+    "sip-trunk",
+    "realtime",
+    "twilio",
+    "telnyx",
     "ai",
     "sdk",
     "api-client"
   ],
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/aqeelshamz/wixzel-phone-sdks.git",
+    "url": "git+https://github.com/aqeelshamz/wixzel-voice-sdks.git",
     "directory": "packages/sdk-ts"
   },
-  "homepage": "https://docs.phone.wixzel.com/sdks",
+  "homepage": "https://docs.voice.wixzel.com/sdks",
   "bugs": {
-    "url": "https://github.com/aqeelshamz/wixzel-phone-sdks/issues"
+    "url": "https://github.com/aqeelshamz/wixzel-voice-sdks/issues"
   },
   "devDependencies": {
     "@types/node": "^22.19.0",

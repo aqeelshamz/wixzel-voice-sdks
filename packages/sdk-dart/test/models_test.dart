@@ -1,5 +1,5 @@
 import 'package:test/test.dart';
-import 'package:wixzel_phone/wixzel_phone.dart';
+import 'package:wixzel_voice/wixzel_voice.dart';
 
 /// Parsing is where an SDK quietly goes wrong, so every model is fed a
 /// realistic payload and asked to give the values back.

@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { OPERATIONS, SCOPES, VERSION, WixzelPhone } from '../src/index.js';
+import { OPERATIONS, SCOPES, VERSION, WixzelVoice } from '../src/index.js';
 import { USER_AGENT } from '../src/version.js';
 
 /**
@@ -25,7 +25,7 @@ const RESOURCES = [
     'webhooks', 'realtime',
 ] as const;
 
-const client = new WixzelPhone({ apiKey: 'wv_test_x', fetch: (() => Promise.reject(new Error('no'))) as typeof fetch });
+const client = new WixzelVoice({ apiKey: 'wv_test_x', fetch: (() => Promise.reject(new Error('no'))) as typeof fetch });
 
 describe('spec coverage', () => {
     test('every OpenAPI operation has exactly one method, and every method names a real operation', () => {
@@ -50,7 +50,7 @@ describe('spec coverage', () => {
     test('each named method exists on the client and calls the verb and path it claims', () => {
         for (const [operation, name] of Object.entries(OPERATIONS)) {
             const [verb, path] = operation.split(' ') as [string, string];
-            const [ns, method] = name.split('.') as [keyof WixzelPhone, string];
+            const [ns, method] = name.split('.') as [keyof WixzelVoice, string];
             const resource = client[ns] as unknown as Record<string, unknown>;
             const fn = resource?.[method];
             assert.equal(typeof fn, 'function', `${name} is not a method on the client`);
@@ -82,7 +82,7 @@ describe('spec coverage', () => {
 
     test('the version constant matches package.json', () => {
         assert.equal(VERSION, pkg.version);
-        assert.equal(pkg.name, 'wixzel-phone');
-        assert.ok(USER_AGENT.startsWith('wixzel-phone/'));
+        assert.equal(pkg.name, 'wixzel-voice');
+        assert.ok(USER_AGENT.startsWith('wixzel-voice/'));
     });
 });

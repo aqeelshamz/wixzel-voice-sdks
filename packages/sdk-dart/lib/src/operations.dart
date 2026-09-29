@@ -89,7 +89,7 @@ const Set<String> kOperationAliases = {
 /// Dart has no reflection outside `dart:mirrors`, which does not work on
 /// Flutter, so the mapping is written out and the test asserts it covers the
 /// table exactly. A method renamed without a change here fails to compile.
-Map<String, Function> operationMethods(WixzelPhone client) => {
+Map<String, Function> operationMethods(WixzelVoice client) => {
       'engines.list': client.engines.list,
       'engines.languages': client.engines.languages,
       'engines.voices': client.engines.voices,

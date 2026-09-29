@@ -1,9 +1,9 @@
 /**
- * Streamable HTTP mode: the hosted server at mcp.phone.wixzel.com, and the
+ * Streamable HTTP mode: the hosted server at mcp.voice.wixzel.com, and the
  * same thing on a laptop with `--http`.
  *
  * Stateless by design. Every request carries its own `Authorization: Bearer`,
- * which is a Wixzel Phone API key — either pasted by a developer into
+ * which is a Wixzel Voice API key — either pasted by a developer into
  * `claude mcp add --header`, or issued by the API's OAuth server after the
  * user consented in the console. Either way this process builds a fresh MCP
  * server bound to that key, answers the request, and forgets it. Nothing here
@@ -20,16 +20,25 @@ import { StreamableHTTPServerTransport } from '@modelcontextprotocol/sdk/server/
 import { DEFAULT_BASE_URL, type WixzelClientOptions } from './client.js';
 import { scopes } from './schemas.js';
 import { createServer, SERVER_VERSION } from './server.js';
+import { consoleUrl, DEFAULT_CONSOLE_URL } from './site.js';
 
 export interface HttpOptions {
     /** TCP port. 0 picks a free one (tests). */
     port: number;
     /** Interface to bind. Loopback by default: nginx terminates TLS in front. */
     bind: string;
-    /** The resource identifier tokens are issued for, e.g. https://mcp.phone.wixzel.com/mcp */
+    /** The resource identifier tokens are issued for, e.g. https://mcp.voice.wixzel.com/mcp */
     publicUrl: string;
-    /** The Wixzel Phone API, which is also the OAuth authorization server. */
+    /**
+     * Other hostnames this same server answers on. A request that arrives on
+     * one is told the resource is publicUrl with that host. Defaults to
+     * hostAliases(publicUrl).
+     */
+    hostAliases?: readonly string[] | undefined;
+    /** The Wixzel Voice API, which is also the OAuth authorization server. */
     apiBaseUrl: string;
+    /** The console the landing page links to. Defaults to voice.wixzel.com. */
+    consoleUrl?: string | undefined;
     apiVersion?: string | undefined;
     /** Used when a request carries no bearer. Refused on a public host; see resolveHttpOptions. */
     fallbackKey?: string | undefined;
@@ -38,6 +47,34 @@ export interface HttpOptions {
 }
 
 const LOOPBACK = new Set(['localhost', '127.0.0.1', '[::1]', '::1']);
+
+/**
+ * The hosted server's names. It was mcp.phone.wixzel.com from 8 to 29 September
+ * 2026, and that name keeps serving so connectors added then keep working. An
+ * MCP client refuses protected-resource metadata whose resource is on another
+ * origin than the URL it connected to (the TypeScript SDK's
+ * checkResourceAllowed), so each name has to be advertised as itself.
+ */
+const HOSTED_MCP_HOSTS = ['mcp.voice.wixzel.com', 'mcp.phone.wixzel.com'];
+
+/** The other names of the host in publicUrl, if it is the hosted server; none otherwise. */
+export function hostAliases(publicUrl: string): string[] {
+    const host = new URL(publicUrl).host.toLowerCase();
+    return HOSTED_MCP_HOSTS.includes(host) ? HOSTED_MCP_HOSTS.filter((h) => h !== host) : [];
+}
+
+/**
+ * The resource a request addressed: publicUrl, or the same URL on the alias
+ * host it arrived on (nginx passes the client's Host through). Any other Host
+ * gets publicUrl, so a forged header can only pick between our own names.
+ */
+export function resourceFor(publicUrl: string, aliases: readonly string[], hostHeader: string | undefined): string {
+    const host = (hostHeader ?? '').trim().toLowerCase();
+    if (!host || !aliases.includes(host)) return publicUrl;
+    const url = new URL(publicUrl);
+    url.host = host;
+    return url.href.replace(/\/+$/, '');
+}
 
 function isLoopbackUrl(url: string): boolean {
     try {
@@ -67,7 +104,9 @@ export function resolveHttpOptions(env: NodeJS.ProcessEnv, cliPort?: number): Ht
         port,
         bind,
         publicUrl,
+        hostAliases: hostAliases(publicUrl),
         apiBaseUrl: (env.WIXZEL_API_BASE_URL || DEFAULT_BASE_URL).replace(/\/+$/, ''),
+        consoleUrl: consoleUrl(env),
         apiVersion: env.WIXZEL_API_VERSION || undefined,
         fallbackKey,
     };
@@ -139,14 +178,14 @@ function json(res: ServerResponse, status: number, body: unknown, headers: Recor
     res.end(JSON.stringify(body));
 }
 
-export function protectedResourceMetadata(opts: HttpOptions) {
+export function protectedResourceMetadata(opts: HttpOptions, resource: string = opts.publicUrl) {
     return {
-        resource: opts.publicUrl,
+        resource,
         authorization_servers: [opts.apiBaseUrl],
         bearer_methods_supported: ['header'],
         scopes_supported: [...scopes],
-        resource_name: 'Wixzel Phone',
-        resource_documentation: 'https://docs.phone.wixzel.com/mcp-server',
+        resource_name: 'Wixzel Voice',
+        resource_documentation: 'https://docs.voice.wixzel.com/mcp-server',
     };
 }
 
@@ -163,13 +202,15 @@ export function createHttpHandler(opts: HttpOptions): (req: IncomingMessage, res
     const log = opts.log ?? ((line: string) => process.stderr.write(`${line}\n`));
     const metadataPaths = new Set(['/.well-known/oauth-protected-resource', new URL(resourceMetadataUrl(opts.publicUrl)).pathname]);
     const mcpPath = new URL(opts.publicUrl).pathname === '/' ? '/mcp' : new URL(opts.publicUrl).pathname;
+    const aliases = (opts.hostAliases ?? hostAliases(opts.publicUrl)).map((h) => h.toLowerCase());
 
-    const challenge = (error?: string) =>
-        `Bearer realm="wixzel-phone-mcp", resource_metadata="${resourceMetadataUrl(opts.publicUrl)}"` +
+    const challenge = (resource: string, error?: string) =>
+        `Bearer realm="wixzel-voice-mcp", resource_metadata="${resourceMetadataUrl(resource)}"` +
         (error ? `, error="${error}"` : '');
 
     return async (req, res) => {
         const url = new URL(req.url ?? '/', 'http://localhost');
+        const resource = resourceFor(opts.publicUrl, aliases, req.headers.host);
         cors(res);
 
         if (req.method === 'OPTIONS') {
@@ -178,17 +219,18 @@ export function createHttpHandler(opts: HttpOptions): (req: IncomingMessage, res
             return;
         }
         if (url.pathname === '/healthz') {
-            return json(res, 200, { ok: true, name: 'wixzel-phone-mcp', version: SERVER_VERSION });
+            return json(res, 200, { ok: true, name: 'wixzel-voice-mcp', version: SERVER_VERSION });
         }
         // People do open the bare host in a browser, and connector UIs that
-        // want an icon parse this page for one. A sentence and the two links.
+        // want an icon parse this page for one. A sentence and a few links.
         if (url.pathname === '/' && (req.method === 'GET' || req.method === 'HEAD')) {
             res.writeHead(200, { 'content-type': 'text/html; charset=utf-8', 'cache-control': 'public, max-age=3600' });
-            res.end(LANDING_HTML(mcpPath));
+            res.end(LANDING_HTML(mcpPath, opts.publicUrl, (opts.consoleUrl ?? consoleUrl()).replace(/\/+$/, '')));
             return;
         }
         if (metadataPaths.has(url.pathname)) {
-            return json(res, 200, protectedResourceMetadata(opts), { 'cache-control': 'public, max-age=300' });
+            // Varies by Host now that one process answers for two names.
+            return json(res, 200, protectedResourceMetadata(opts, resource), { 'cache-control': 'public, max-age=300', vary: 'Host' });
         }
         if (url.pathname !== mcpPath) {
             return json(res, 404, { error: 'not_found', message: `MCP is served at ${mcpPath}` });
@@ -199,14 +241,14 @@ export function createHttpHandler(opts: HttpOptions): (req: IncomingMessage, res
         if (!apiKey) {
             return json(res, 401, {
                 error: 'unauthorized',
-                message: 'Send a Wixzel Phone API key as "Authorization: Bearer wv_live_…", or connect through OAuth.',
-            }, { 'www-authenticate': challenge() });
+                message: 'Send a Wixzel Voice API key as "Authorization: Bearer wv_live_…", or connect through OAuth.',
+            }, { 'www-authenticate': challenge(resource) });
         }
         if (presented && (await probe.check(presented)) === 'rejected') {
             return json(res, 401, {
                 error: 'invalid_token',
                 message: 'That API key is invalid, revoked or expired. Reconnect to obtain a new one.',
-            }, { 'www-authenticate': challenge('invalid_token') });
+            }, { 'www-authenticate': challenge(resource, 'invalid_token') });
         }
 
         const clientOptions: WixzelClientOptions = {
@@ -220,13 +262,13 @@ export function createHttpHandler(opts: HttpOptions): (req: IncomingMessage, res
         // The transport decides most 4xx answers itself and says why only
         // through this hook; without it a client's "couldn't load tools" is
         // a status code and nothing else in the logs.
-        transport.onerror = (error) => log(`wixzel-phone-mcp: transport: ${error.message}`);
-        server.server.onerror = (error) => log(`wixzel-phone-mcp: server: ${error.message}`);
+        transport.onerror = (error) => log(`wixzel-voice-mcp: transport: ${error.message}`);
+        server.server.onerror = (error) => log(`wixzel-voice-mcp: server: ${error.message}`);
         res.on('finish', () => {
             if (res.statusCode >= 400) {
                 const h = req.headers;
                 log(
-                    `wixzel-phone-mcp: ${res.statusCode} ${req.method} ${url.pathname}` +
+                    `wixzel-voice-mcp: ${res.statusCode} ${req.method} ${url.pathname}` +
                         ` accept=${JSON.stringify(h.accept ?? null)} content-type=${JSON.stringify(h['content-type'] ?? null)}` +
                         ` length=${h['content-length'] ?? '?'} protocol=${h['mcp-protocol-version'] ?? '-'} session=${h['mcp-session-id'] ? 'yes' : 'no'}` +
                         ` ua=${JSON.stringify(h['user-agent'] ?? null)}`,
@@ -241,25 +283,34 @@ export function createHttpHandler(opts: HttpOptions): (req: IncomingMessage, res
             await server.connect(transport);
             await transport.handleRequest(req, res);
         } catch (error) {
-            log(`wixzel-phone-mcp: request failed: ${(error as Error).message}`);
+            log(`wixzel-voice-mcp: request failed: ${(error as Error).message}`);
             if (!res.headersSent) json(res, 500, { error: 'internal_error' });
         }
     };
 }
 
-const LANDING_HTML = (mcpPath: string) => `<!doctype html>
-<html lang="en"><head><meta charset="utf-8"><title>Wixzel Phone MCP server</title>
+const LANDING_HTML = (mcpPath: string, publicUrl: string, consoleBase: string) => {
+    // Our product pages only on our own server. A self-hosted install links
+    // its own console and the public docs, and nothing that sells.
+    const product = consoleBase === DEFAULT_CONSOLE_URL
+        ? ` · <a href="${DEFAULT_CONSOLE_URL}/solutions/ai-agents-mcp">What you can build</a> · <a href="${DEFAULT_CONSOLE_URL}">Wixzel Voice</a>`
+        : '';
+    return `<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><title>Wixzel Voice MCP server</title>
 <meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="description" content="Connect Claude, ChatGPT, Cursor or any other MCP client to Wixzel Voice and build AI agents that place and answer real phone calls.">
 <link rel="icon" href="/favicon.ico"><link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png">
 <link rel="apple-touch-icon" href="/apple-touch-icon.png">
 <style>body{margin:0;min-height:100vh;display:grid;place-items:center;background:#0d0d0d;color:#e8e8e8;font:15px/1.5 system-ui,sans-serif}main{max-width:32rem;padding:2rem}code{background:#1a1a1a;padding:.15em .4em;border-radius:.3em}a{color:#a0d425}</style>
 </head><body><main>
 <img src="/icon-192.png" alt="" width="48" height="48">
-<h1>Wixzel Phone MCP server</h1>
-<p>This host speaks the Model Context Protocol at <code>${mcpPath}</code>. Add it as a connector in claude.ai or Claude Desktop, or run <code>claude mcp add --transport http wixzel-phone https://mcp.phone.wixzel.com${mcpPath}</code>.</p>
-<p><a href="https://docs.phone.wixzel.com/mcp-server">Documentation</a> · <a href="https://phone.wixzel.com/connect">Connect your account</a></p>
+<h1>Wixzel Voice MCP server</h1>
+<p>Connect Claude, ChatGPT, Cursor or any other MCP client to Wixzel Voice and build AI agents that place and answer real phone calls.</p>
+<p>This host speaks the Model Context Protocol at <code>${mcpPath}</code>. Add it as a connector in claude.ai or Claude Desktop, or run <code>claude mcp add --transport http wixzel-voice ${publicUrl}</code>.</p>
+<p><a href="https://docs.voice.wixzel.com/mcp-server">Documentation</a> · <a href="${consoleBase}/connect">Connect your account</a>${product}</p>
 </main></body></html>
 `;
+};
 
 export interface RunningHttpServer {
     server: Server;

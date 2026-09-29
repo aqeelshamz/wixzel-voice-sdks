@@ -6,7 +6,7 @@ import type { CreateRealtimeSession, RealtimeSession } from '../types.js';
  *
  * Call `createSession` on your SERVER — it needs your API key — and pass the
  * result to your client. In a browser, `RealtimeSession` from
- * `wixzel-phone/realtime` does the rest: microphone, playback, barge-in.
+ * `wixzel-voice/realtime` does the rest: microphone, playback, barge-in.
  */
 export class Realtime {
     constructor(private readonly http: Http) {}

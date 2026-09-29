@@ -1,10 +1,10 @@
 /**
- * `wixzel-phone/realtime` — talk to a Wixzel Phone agent from a browser.
+ * `wixzel-voice/realtime` — talk to a Wixzel Voice agent from a browser.
  *
  *     // your server
  *     const session = await wixzel.realtime.createSession({ agent_id });
  *     // your page
- *     import { RealtimeSession } from 'wixzel-phone/realtime';
+ *     import { RealtimeSession } from 'wixzel-voice/realtime';
  *     const call = await RealtimeSession.connect(session, {
  *         onTranscript: (t) => console.log(t.role, t.text),
  *         onEnd: (reason) => console.log('ended', reason),

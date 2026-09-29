@@ -1,30 +1,32 @@
-# wixzel-phone-mcp
+# wixzel-voice-mcp
 
-[![npm](https://img.shields.io/npm/v/wixzel-phone-mcp?style=flat-square&logo=npm&logoColor=white&label=npm&color=A0D425&labelColor=0D0D0D)](https://www.npmjs.com/package/wixzel-phone-mcp)
+[![npm](https://img.shields.io/npm/v/wixzel-voice-mcp?style=flat-square&logo=npm&logoColor=white&label=npm&color=A0D425&labelColor=0D0D0D)](https://www.npmjs.com/package/wixzel-voice-mcp)
 [![MIT](https://img.shields.io/badge/licence-MIT-A0D425?style=flat-square&labelColor=0D0D0D)](LICENSE)
-**Wixzel Phone for AI agents.** A [Model Context Protocol](https://modelcontextprotocol.io) server that lets Claude Code, claude.ai, Claude Desktop, Cursor, and any other MCP client create voice agents, connect a carrier, place calls, run campaigns, and read what it all cost, using the [Wixzel Phone](https://phone.wixzel.com) API.
+**Wixzel Voice for AI agents.** A [Model Context Protocol](https://modelcontextprotocol.io) server that lets Claude Code, claude.ai, Claude Desktop, Cursor, and any other MCP client create voice agents, connect a carrier, place calls, run campaigns, and read what it all cost, using the [Wixzel Voice](https://voice.wixzel.com) API.
 
-> Wixzel Phone: APIs for AI voice agents. One API key, one balance, every voice engine.
+> Wixzel Voice: APIs for AI voice agents. One API key, one balance, every voice engine.
 
 One tool per API operation, 56 in all, each annotated so a client knows which are read-only, which delete, and which **spend money or make a real phone ring**. Three prompts (`quickstart`, `diagnose_call`, `spend_report`) package the common workflows.
+
+Published as `wixzel-phone-mcp` up to 0.3.0, while the product was briefly called Wixzel Phone. Those releases keep working: `api.phone.wixzel.com` and `mcp.phone.wixzel.com` keep serving.
 
 Two ways to run it:
 
 | | Where | Auth |
 |---|---|---|
-| **Hosted**, `https://mcp.phone.wixzel.com/mcp` | Wixzel's servers | OAuth sign-in from the client, or a bearer key |
-| **Local**, `npx -y wixzel-phone-mcp` | Your machine, stdio | `WIXZEL_API_KEY` in the environment |
+| **Hosted**, `https://mcp.voice.wixzel.com/mcp` | Wixzel's servers | OAuth sign-in from the client, or a bearer key |
+| **Local**, `npx -y wixzel-voice-mcp` | Your machine, stdio | `WIXZEL_API_KEY` in the environment |
 
-The console's **AI clients** page at [phone.wixzel.com/connect](https://phone.wixzel.com/connect) generates every command below with a key filled in.
+The console's **AI clients** page at [voice.wixzel.com/connect](https://voice.wixzel.com/connect) generates every command below with a key filled in.
 
 ## Claude Code
 
 ```bash
 # hosted: sign in with your Wixzel account when Claude Code asks (/mcp → Authenticate)
-claude mcp add --transport http wixzel-phone https://mcp.phone.wixzel.com/mcp
+claude mcp add --transport http wixzel-voice https://mcp.voice.wixzel.com/mcp
 
 # local: a scoped key from the console
-claude mcp add wixzel-phone -e WIXZEL_API_KEY=wv_live_... -- npx -y wixzel-phone-mcp
+claude mcp add wixzel-voice -e WIXZEL_API_KEY=wv_live_... -- npx -y wixzel-voice-mcp
 ```
 
 Or commit a `.mcp.json` so every collaborator gets it:
@@ -32,9 +34,9 @@ Or commit a `.mcp.json` so every collaborator gets it:
 ```json
 {
   "mcpServers": {
-    "wixzel-phone": {
+    "wixzel-voice": {
       "command": "npx",
-      "args": ["-y", "wixzel-phone-mcp"],
+      "args": ["-y", "wixzel-voice-mcp"],
       "env": { "WIXZEL_API_KEY": "${WIXZEL_API_KEY}" }
     }
   }
@@ -44,16 +46,16 @@ Or commit a `.mcp.json` so every collaborator gets it:
 Then:
 
 ```
-/mcp__wixzel-phone__quickstart
+/mcp__wixzel-voice__quickstart
 ```
 
 ## claude.ai and Claude Desktop
 
-Settings → Connectors → Add custom connector → `https://mcp.phone.wixzel.com/mcp` → Connect. You sign in to the console, tick what the client may do, and it receives a scoped key of its own. Disconnect it from the console's AI clients page at any time.
+Settings → Connectors → Add custom connector → `https://mcp.voice.wixzel.com/mcp` → Connect. You sign in to the console, tick what the client may do, and it receives a scoped key of its own. Disconnect it from the console's AI clients page at any time.
 
 ## Cursor, Windsurf, VS Code, others
 
-Same shape as `.mcp.json` above: command `npx`, args `["-y", "wixzel-phone-mcp"]`, env `WIXZEL_API_KEY`. Clients that connect over HTTP but cannot do OAuth send the key as `Authorization: Bearer wv_live_...`.
+Same shape as `.mcp.json` above: command `npx`, args `["-y", "wixzel-voice-mcp"]`, env `WIXZEL_API_KEY`. Clients that connect over HTTP but cannot do OAuth send the key as `Authorization: Bearer wv_live_...`.
 
 ## What the agent can do
 
@@ -87,15 +89,15 @@ Resources: `wixzel://guide` (the operating guide the server also sends as its in
 ## Running the hosted mode yourself
 
 ```bash
-npx wixzel-phone-mcp --http 3939
+npx wixzel-voice-mcp --http 3939
 ```
 
 | Variable | Purpose |
 |---|---|
 | `MCP_PORT` | Port. Default 3939; `--http <port>` overrides. |
 | `MCP_BIND` | Interface. Default `127.0.0.1`; terminate TLS in front rather than binding wider. |
-| `MCP_PUBLIC_URL` | The URL clients use, e.g. `https://mcp.phone.wixzel.com/mcp`. Advertised as the OAuth resource. |
-| `WIXZEL_API_BASE_URL` | The API, which is also the OAuth authorization server. Default `https://api.phone.wixzel.com`. |
+| `MCP_PUBLIC_URL` | The URL clients use, e.g. `https://mcp.voice.wixzel.com/mcp`. Advertised as the OAuth resource. |
+| `WIXZEL_API_BASE_URL` | The API, which is also the OAuth authorization server. Default `https://api.voice.wixzel.com`. |
 | `WIXZEL_API_VERSION` | Optional `Wixzel-Version` date pin. |
 | `WIXZEL_API_KEY` | Stdio mode: the key. HTTP mode: a fallback for requests without a bearer, **accepted only when `MCP_PUBLIC_URL` is a loopback address**. |
 
@@ -103,7 +105,7 @@ Each request's bearer becomes the API key for a fresh, throwaway MCP server; not
 
 ## Development
 
-The source is mirrored at [wixzel-phone-sdks](https://github.com/aqeelshamz/wixzel-phone-sdks); it is developed in the private monorepo that also holds the API, so a change to an endpoint and the change to its tool land together.
+The source is mirrored at [wixzel-voice-sdks](https://github.com/aqeelshamz/wixzel-voice-sdks); it is developed in the private monorepo that also holds the API, so a change to an endpoint and the change to its tool land together.
 
 ```bash
 npm install                # at the repo root
@@ -117,9 +119,9 @@ Tool schemas are hand-written zod. The spec-coverage test compares them against 
 ## Not for application code
 
 This server is for AI agents. Application code should use the SDKs:
-[`wixzel-phone`](https://www.npmjs.com/package/wixzel-phone) on npm and
-[`wixzel_phone`](https://pub.dev/packages/wixzel_phone) on pub.dev.
+[`wixzel-voice`](https://www.npmjs.com/package/wixzel-voice) on npm and
+[`wixzel_voice`](https://pub.dev/packages/wixzel_voice) on pub.dev.
 
 ## License
 
-MIT. Wixzel Phone itself is a hosted service; see [phone.wixzel.com](https://phone.wixzel.com) for terms.
+MIT. Wixzel Voice itself is a hosted service; see [voice.wixzel.com](https://voice.wixzel.com) for terms.

@@ -1,22 +1,22 @@
 // Build an agent and place a test call.
 //
-//   dart run example/wixzel_phone_example.dart
+//   dart run example/wixzel_voice_example.dart
 //
 // Needs WIXZEL_API_KEY in the environment. The call spends credit and rings
 // a real phone, so it only runs when you also set CALL_TO.
 import 'dart:io';
 
-import 'package:wixzel_phone/wixzel_phone.dart';
+import 'package:wixzel_voice/wixzel_voice.dart';
 
 Future<void> main() async {
   final apiKey = Platform.environment['WIXZEL_API_KEY'];
   if (apiKey == null) {
     stderr.writeln(
-        'Set WIXZEL_API_KEY. Create one at https://phone.wixzel.com/keys');
+        'Set WIXZEL_API_KEY. Create one at https://voice.wixzel.com/keys');
     exit(1);
   }
 
-  final client = WixzelPhone(apiKey: apiKey);
+  final client = WixzelVoice(apiKey: apiKey);
 
   try {
     // What can the platform serve right now, and at what price?

@@ -14,10 +14,10 @@ import { PhoneNumbers } from './resources/phone-numbers.js';
 import { SipTrunks } from './resources/sip-trunks.js';
 import { Usage } from './resources/usage.js';
 
-export interface WixzelPhoneOptions {
+export interface WixzelVoiceOptions {
     /** Your API key, `wv_live_…` or `wv_test_…`. */
     apiKey: string;
-    /** Defaults to https://api.phone.wixzel.com. */
+    /** Defaults to https://api.voice.wixzel.com. */
     baseUrl?: string;
     /** A `Wixzel-Version` date, e.g. `2026-09-01`, so an upgrade is something you do rather than something that happens to you. */
     apiVersion?: string;
@@ -34,12 +34,12 @@ export interface WixzelPhoneOptions {
 }
 
 /**
- * The Wixzel Phone API.
+ * The Wixzel Voice API.
  *
- *   const client = new WixzelPhone({ apiKey: process.env.WIXZEL_API_KEY! });
+ *   const client = new WixzelVoice({ apiKey: process.env.WIXZEL_API_KEY! });
  *   const call = await client.calls.create({ to: '+14155551234', agent_id: 'ag_…' });
  */
-export class WixzelPhone {
+export class WixzelVoice {
     readonly agents: Agents;
     readonly calls: Calls;
     readonly leads: Leads;
@@ -53,12 +53,12 @@ export class WixzelPhone {
     readonly apiKeys: ApiKeys;
     readonly engines: Engines;
     readonly webhooks: Webhooks;
-    /** Server-side half of realtime; the browser half is `wixzel-phone/realtime`. */
+    /** Server-side half of realtime; the browser half is `wixzel-voice/realtime`. */
     readonly realtime: Realtime;
 
     private readonly http: Http;
 
-    constructor(options: WixzelPhoneOptions) {
+    constructor(options: WixzelVoiceOptions) {
         const httpOptions: HttpOptions = { apiKey: options.apiKey };
         if (options.baseUrl !== undefined) httpOptions.baseUrl = options.baseUrl;
         if (options.apiVersion !== undefined) httpOptions.apiVersion = options.apiVersion;
@@ -107,3 +107,13 @@ export class WixzelPhone {
         return this.http.request<T>(method, path, init);
     }
 }
+
+// The names this client had as `wixzel-phone` (0.3.0 and earlier), so code
+// moving across only has to change its import.
+
+/** @deprecated Use WixzelVoice. */
+export const WixzelPhone = WixzelVoice;
+/** @deprecated Use WixzelVoice. */
+export type WixzelPhone = WixzelVoice;
+/** @deprecated Use WixzelVoiceOptions. */
+export type WixzelPhoneOptions = WixzelVoiceOptions;

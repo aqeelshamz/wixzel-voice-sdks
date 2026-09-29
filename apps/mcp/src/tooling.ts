@@ -4,6 +4,7 @@
  * tools are safe to call without asking.
  */
 
+import { consoleUrl } from './site.js';
 import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import type { CallToolResult, ToolAnnotations } from '@modelcontextprotocol/sdk/types.js';
 import type { ZodRawShape } from 'zod/v4';
@@ -97,7 +98,7 @@ export function fail(error: unknown, tool?: ToolDef<any>): CallToolResult {
 export function describeError(error: unknown, tool?: ToolDef<any>): string {
     if (error instanceof WixzelApiError) {
         const lines = [
-            `Wixzel Phone API error ${error.status} (${error.type} / ${error.code}): ${error.message}`,
+            `Wixzel Voice API error ${error.status} (${error.type} / ${error.code}): ${error.message}`,
         ];
         if (error.param) lines.push(`Parameter: ${error.param}`);
         if (error.requestId) lines.push(`request_id: ${error.requestId}`);
@@ -107,7 +108,7 @@ export function describeError(error: unknown, tool?: ToolDef<any>): string {
     }
     if (error instanceof Error) {
         if (error.name === 'TimeoutError' || error.name === 'AbortError') {
-            return `The request to the Wixzel Phone API timed out. ${tool?.annotations.idempotentHint ? 'It is safe to retry.' : 'If this tool spends money, retry with the same idempotency_key so it is not repeated.'}`;
+            return `The request to the Wixzel Voice API timed out. ${tool?.annotations.idempotentHint ? 'It is safe to retry.' : 'If this tool spends money, retry with the same idempotency_key so it is not repeated.'}`;
         }
         return `Request failed: ${error.message}`;
     }
@@ -117,7 +118,7 @@ export function describeError(error: unknown, tool?: ToolDef<any>): string {
 function hintFor(error: WixzelApiError, tool?: ToolDef<any>): string | null {
     switch (error.code) {
         case 'insufficient_credits':
-            return `The account balance cannot cover this. ${error.balanceHeader ? `Current balance: ${error.balanceHeader}. ` : ''}Add credit with create_topup (returns a checkout URL for a human to pay) or in the dashboard at https://phone.wixzel.com.`;
+            return `The account balance cannot cover this. ${error.balanceHeader ? `Current balance: ${error.balanceHeader}. ` : ''}Add credit with create_topup (returns a checkout URL for a human to pay) or in the dashboard at ${consoleUrl()}.`;
         case 'insufficient_scope':
         case 'permission_denied':
             return `The API key does not hold ${tool?.scope ? `the \`${tool.scope}\` scope` : 'the scope this endpoint needs'}. Keys are scoped with no wildcard; create one with that scope in Dashboard → API keys, then restart this MCP server with it.`;

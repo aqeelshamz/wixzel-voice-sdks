@@ -1,5 +1,5 @@
 import 'package:test/test.dart';
-import 'package:wixzel_phone/wixzel_phone.dart';
+import 'package:wixzel_voice/wixzel_voice.dart';
 
 import 'helpers.dart';
 
@@ -20,8 +20,8 @@ void main() {
       expect(req.url.toString(), 'https://api.example/v1/agents/ag1');
       expect(req.headers['authorization'], 'Bearer wv_test_abc');
       expect(req.headers['accept'], 'application/json');
-      expect(req.headers['user-agent'], startsWith('wixzel-phone/'));
-      expect(req.headers['x-wixzel-client'], startsWith('wixzel-phone-dart/'));
+      expect(req.headers['user-agent'], startsWith('wixzel-voice/'));
+      expect(req.headers['x-wixzel-client'], startsWith('wixzel-voice-dart/'));
       expect(req.headers.containsKey('wixzel-version'), isFalse);
       expect(client.keyMode, KeyMode.test);
       expect(client.baseUrl, 'https://api.example');
@@ -73,7 +73,22 @@ void main() {
     });
 
     test('an empty API key is refused', () {
-      expect(() => WixzelPhone(apiKey: ''), throwsA(isA<ArgumentError>()));
+      expect(() => WixzelVoice(apiKey: ''), throwsA(isA<ArgumentError>()));
+    });
+
+    test('defaults to the api.voice host', () {
+      expect(defaultBaseUrl, 'https://api.voice.wixzel.com');
+      final client = WixzelVoice(apiKey: 'wv_test_abc');
+      expect(client.baseUrl, defaultBaseUrl);
+      client.close();
+    });
+
+    test('the pre-rename class name still works, as the same class', () {
+      // Code written against wixzel_phone 0.3.0 only has to change its import.
+      // ignore: deprecated_member_use_from_same_package
+      final client = WixzelPhone(apiKey: 'wv_test_abc');
+      expect(client, isA<WixzelVoice>());
+      client.close();
     });
 
     test('the escape hatch reaches any path with the same conventions',
@@ -98,7 +113,7 @@ void main() {
         headers: {'x-wixzel-balance': r'$0.12'},
         extra: {
           'doc_url':
-              'https://docs.phone.wixzel.com/errors#insufficient_credits',
+              'https://docs.voice.wixzel.com/errors#insufficient_credits',
           'param': 'to'
         },
       ));

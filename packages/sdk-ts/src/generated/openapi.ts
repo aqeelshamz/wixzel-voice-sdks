@@ -473,7 +473,7 @@ export type paths = {
         put?: never;
         /**
          * Create a realtime session
-         * @description Mint a one-minute, single-use `client_secret` that lets a browser or app talk to one of your agents over `wss://api.phone.wixzel.com/v1/realtime` — no SIP trunk, no phone number. Call this from your server; the API key must never reach the client.
+         * @description Mint a one-minute, single-use `client_secret` that lets a browser or app talk to one of your agents over `wss://api.voice.wixzel.com/v1/realtime` — no SIP trunk, no phone number. Call this from your server; the API key must never reach the client.
          *
          *     Nothing is charged here. When the socket connects, the session is admitted exactly like a call: it needs credit, counts toward your concurrent-call limit and the key's spend limit, is billed at the same per-minute price as a phone call on the same engine, and appears in GET /v1/calls with `channel: "web"`, followed by a `callCompleted` webhook.
          *
@@ -5327,7 +5327,7 @@ export type components = {
             from_number_id?: string;
             /**
              * @description What to say. Defaults to the agent's opening message, which is usually what you want to hear.
-             * @example This is a test call from Wixzel Phone. Goodbye.
+             * @example This is a test call from Wixzel Voice. Goodbye.
              */
             phrase?: string;
         };
@@ -5349,7 +5349,7 @@ export type components = {
                  */
                 expires_at: string;
             };
-            /** @example wss://api.phone.wixzel.com/v1/realtime */
+            /** @example wss://api.voice.wixzel.com/v1/realtime */
             url: string;
             /** @example 6a96a3ead6e886d42462dd3e */
             agent_id: string;
@@ -6180,6 +6180,11 @@ export type components = {
             description: string | null;
             /** @description A sample of the voice, where the provider hosts one. Null otherwise. */
             preview_url: string | null;
+            /**
+             * @description The provider's own grouping, where it publishes one — for ElevenLabs `premade`, `cloned`, `generated` or `professional`. Null for a provider that ships one fixed roster with no grouping, such as Google or Sarvam.
+             * @example premade
+             */
+            category: string | null;
         };
         EngineVoiceList: {
             /** @enum {string} */

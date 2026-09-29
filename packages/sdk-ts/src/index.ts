@@ -1,4 +1,4 @@
-export { WixzelPhone, type WixzelPhoneOptions } from './client.js';
+export { WixzelVoice, type WixzelVoiceOptions, WixzelPhone, type WixzelPhoneOptions } from './client.js';
 export { WixzelError, WixzelConnectionError } from './core/error.js';
 export { Page } from './core/page.js';
 export { lastResponse, type ResponseMeta } from './core/response.js';

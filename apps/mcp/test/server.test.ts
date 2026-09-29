@@ -2,10 +2,12 @@ import { test, describe, before, beforeEach, after } from 'node:test';
 import assert from 'node:assert/strict';
 import { Client } from '@modelcontextprotocol/sdk/client/index.js';
 import { InMemoryTransport } from '@modelcontextprotocol/sdk/inMemory.js';
-import { createServer, allTools, WixzelClient, WixzelApiError } from '../src/server.js';
+import { readFileSync } from 'node:fs';
+import { createServer, allTools, WixzelClient, WixzelApiError, SERVER_NAME, SERVER_VERSION } from '../src/server.js';
+import { USER_AGENT } from '../src/client.js';
 
 /**
- * A fake Wixzel Phone API. Records every request so a test can assert on
+ * A fake Wixzel Voice API. Records every request so a test can assert on
  * method, path, query, headers and body, and answers with whatever the test
  * queued (or a generic echo when nothing was queued).
  */
@@ -41,7 +43,7 @@ function fakeApi() {
     return { requests, queue, fetchImpl, last: () => requests[requests.length - 1]! };
 }
 
-describe('wixzel-phone-mcp', () => {
+describe('wixzel-voice-mcp', () => {
     const api = fakeApi();
     const client = new Client({ name: 'test', version: '0' });
     let server: ReturnType<typeof createServer>;
@@ -87,6 +89,14 @@ describe('wixzel-phone-mcp', () => {
         ]);
     });
 
+    test('introduces itself as Wixzel Voice', () => {
+        const info = client.getServerVersion();
+        assert.equal(info?.name, 'wixzel-voice');
+        assert.equal(info?.title, 'Wixzel Voice');
+        assert.equal(info?.version, SERVER_VERSION);
+        assert.match(client.getInstructions() ?? '', /^# Wixzel Voice, for AI agents/);
+    });
+
     test('scope requirement is written into the description', async () => {
         const { tools } = await client.listTools();
         const placeCall = tools.find((t) => t.name === 'place_call')!;
@@ -104,7 +114,7 @@ describe('wixzel-phone-mcp', () => {
         assert.equal(req.path, '/v1/calls');
         assert.deepEqual(req.query, { limit: '5', status: 'completed', starting_after: 'abc' });
         assert.equal(req.headers.authorization, 'Bearer wv_test_abc');
-        assert.match(req.headers['user-agent']!, /^wixzel-phone-mcp\//);
+        assert.match(req.headers['user-agent']!, /^wixzel-voice-mcp\//);
         assert.equal(result.isError, undefined);
         const text = (result.content as Array<{ type: string; text: string }>)[0]!.text;
         assert.deepEqual(JSON.parse(text), { object: 'list', data: [], has_more: false, next_cursor: null });
@@ -238,7 +248,7 @@ describe('WixzelClient', () => {
             return true;
         });
         assert.equal(c.keyMode, 'live');
-        assert.equal(c.baseUrl, 'https://api.phone.wixzel.com');
+        assert.equal(c.baseUrl, 'https://api.voice.wixzel.com');
     });
 
     test('sends Wixzel-Version when configured and drops empty query values', async () => {
@@ -247,5 +257,43 @@ describe('WixzelClient', () => {
         await c.get('/v1/agents', { limit: undefined, tag: '', search: 'bob' });
         assert.equal(api.last().headers['wixzel-version'], '2026-09-01');
         assert.deepEqual(api.last().query, { search: 'bob' });
+    });
+});
+
+/**
+ * One version, everywhere it is written down. The MCP Registry refuses a
+ * server.json whose npm package does not carry the same mcpName, and a
+ * User-Agent that lags the release misfiles every request in the API's logs.
+ */
+describe('release metadata', () => {
+    const read = (file: string) => JSON.parse(readFileSync(new URL(`../${file}`, import.meta.url), 'utf8'));
+    const pkg = read('package.json');
+    const registry = read('server.json');
+
+    test('package.json, server.json, the server and the User-Agent agree', () => {
+        assert.equal(pkg.name, 'wixzel-voice-mcp');
+        assert.equal(pkg.version, SERVER_VERSION);
+        assert.equal(SERVER_NAME, 'wixzel-voice');
+        assert.equal(USER_AGENT, `wixzel-voice-mcp/${SERVER_VERSION}`);
+        assert.deepEqual(Object.keys(pkg.bin), ['wixzel-voice-mcp']);
+        assert.equal(registry.version, SERVER_VERSION);
+        assert.equal(registry.name, pkg.mcpName);
+        assert.equal(registry.name, 'com.wixzel/voice');
+    });
+
+    test('server.json lists the npm package and the hosted remote', () => {
+        assert.ok(registry.description.length <= 100, 'the registry caps descriptions at 100 characters');
+        assert.equal(registry.repository.url, 'https://github.com/aqeelshamz/wixzel-voice-sdks');
+        assert.equal(registry.repository.subfolder, 'apps/mcp');
+        assert.equal(registry.packages.length, 1);
+        const [npm] = registry.packages;
+        assert.equal(npm.registryType, 'npm');
+        assert.equal(npm.identifier, pkg.name);
+        assert.equal(npm.version, pkg.version);
+        assert.deepEqual(npm.transport, { type: 'stdio' });
+        const key = npm.environmentVariables.find((v: { name: string }) => v.name === 'WIXZEL_API_KEY');
+        assert.equal(key.isRequired, true);
+        assert.equal(key.isSecret, true);
+        assert.deepEqual(registry.remotes, [{ type: 'streamable-http', url: 'https://mcp.voice.wixzel.com/mcp' }]);
     });
 });
